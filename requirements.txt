@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-dotenv
+langchain
+langchain-community
+langchain-groq
+langchain-cohere
+langgraph
+chromadb
+cohere
+youtube-transcript-api
+google-api-python-client
+python-multipart
