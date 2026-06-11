@@ -65,6 +65,12 @@ def get_transcripts(vid_ids: list) -> list[Document]:
             transcriptions.append(doc)
         except Exception:
             continue  # skip videos with no transcript
+        if full_text.strip():  # only add if transcript has actual content
+            doc = Document(
+                page_content=full_text,
+                metadata={"video_id": vids}
+            )
+            transcriptions.append(doc)
     
     return transcriptions
 
@@ -76,6 +82,7 @@ def ingest_channel(yt_url: str) -> str:
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000 , chunk_overlap = 200)
     splits = text_splitter.split_documents(transcripts)
+    splits = [chunk for chunk in splits if chunk.page_content.strip()]
 
     embeddings = CohereEmbeddings(cohere_api_key=os.getenv("COHERE_API_KEY"), model="embed-english-v3.0")
     vectorstore = Chroma.from_documents(splits, embeddings, persist_directory="./chroma_db")
