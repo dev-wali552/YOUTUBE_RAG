@@ -11,7 +11,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://strong-meerkat-a392da.netlify.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
