@@ -3,7 +3,7 @@ load_dotenv()
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from googleapiclient.discovery import build 
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from langchain_cohere import CohereEmbeddings
 from langchain_core.documents import Document
 import os
@@ -50,20 +50,22 @@ def get_vid_ids(channel_id: str) -> list:
     return vid_ids
 
   
-def get_transcripts(vid_ids:list)-> list[Document]:
-
-    transcriptions=[] 
+def get_transcripts(vid_ids: list) -> list[Document]:
+    transcriptions = []
+    ytt_api = YouTubeTranscriptApi()
     
     for vids in vid_ids:
-        transcript = YouTubeTranscriptApi.get_transcript(vids)
-        full_text = " ".join(entry["text"] for entry in transcript)
-        doc = Document(
-            page_content=full_text,
-            metadata={"video_id": vids}  
-
-        )
-        transcriptions.append(doc)
-
+        try:
+            transcript = ytt_api.fetch(vids)
+            full_text = " ".join(entry.text for entry in transcript)
+            doc = Document(
+                page_content=full_text,
+                metadata={"video_id": vids}
+            )
+            transcriptions.append(doc)
+        except Exception:
+            continue  # skip videos with no transcript
+    
     return transcriptions
 
 def ingest_channel(yt_url: str) -> str:
