@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from googleapiclient.discovery import build 
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from langchain_cohere import CohereEmbeddings
