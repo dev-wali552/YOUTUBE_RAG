@@ -52,7 +52,7 @@ def get_vid_ids(channel_id: str) -> list:
   
 def get_transcripts(vid_ids: list) -> list[Document]:
     transcriptions = []
-    ytt_api = YouTubeTranscriptApi()
+    ytt_api = YouTubeTranscriptApi(cookies="/etc/secrets/cookies.txt")  # ← here
     
     for vids in vid_ids:
         try:
