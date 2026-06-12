@@ -2,14 +2,16 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+from langchain_cohere import CohereEmbeddings
 from langchain_chroma import Chroma
 from dotenv import load_dotenv
 import os
 load_dotenv()
 
-embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-
+embeddings = CohereEmbeddings(
+    cohere_api_key=os.getenv("COHERE_API_KEY"),
+    model="embed-english-v3.0"
+)
 vectorstore = Chroma(
     persist_directory="./chroma_db", 
     embedding_function=embeddings

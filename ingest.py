@@ -5,7 +5,7 @@ import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+from langchain_cohere import CohereEmbeddings
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.proxies import WebshareProxyConfig
@@ -19,8 +19,10 @@ ytt_api = YouTubeTranscriptApi(
     )
 )
 
-embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-
+embeddings = CohereEmbeddings(
+    cohere_api_key=os.getenv("COHERE_API_KEY"),
+    model="embed-english-v3.0"
+)
 
 def channel_id(yt_url: str) -> str:
     if "/channel/" in yt_url:
