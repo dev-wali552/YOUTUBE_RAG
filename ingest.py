@@ -58,19 +58,16 @@ def get_transcripts(vid_ids: list) -> list[Document]:
         try:
             transcript = ytt_api.fetch(vids)
             full_text = " ".join(entry.text for entry in transcript)
-            doc = Document(
-                page_content=full_text,
-                metadata={"video_id": vids}
-            )
-            transcriptions.append(doc)
+            if full_text.strip():
+                doc = Document(
+                    page_content=full_text,
+                    metadata={"video_id": vids}
+                )
+            
+                transcriptions.append(doc)
         except Exception:
             continue  # skip videos with no transcript
-        if full_text.strip():  # only add if transcript has actual content
-            doc = Document(
-                page_content=full_text,
-                metadata={"video_id": vids}
-            )
-            transcriptions.append(doc)
+        
     
     return transcriptions
 
