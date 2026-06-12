@@ -1,6 +1,7 @@
 cohere==5.5.8
 langchain-cohere==0.1.9
 fastapi
+langchain-chroma
 uvicorn
 python-dotenv
 langchain
