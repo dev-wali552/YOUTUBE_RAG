@@ -1,5 +1,4 @@
-langchain-huggingface
-huggingface-hub
+fastembed
 fastapi
 langchain-chroma
 uvicorn

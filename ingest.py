@@ -6,8 +6,7 @@ from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from langchain_core.documents import Document
 import os
-from langchain_huggingface import HuggingFaceEndpointEmbeddings
-
+from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 # 3 types of yt_url
 # https://www.youtube.com/@channelname
 # https://www.youtube.com/channel/UCxxxxxxxxxxxxxx
@@ -82,10 +81,8 @@ def ingest_channel(yt_url: str) -> str:
     splits = text_splitter.split_documents(transcripts)
     splits = [chunk for chunk in splits if chunk.page_content.strip()]
 
-    embeddings = HuggingFaceEndpointEmbeddings(
-                model="sentence-transformers/all-MiniLM-L6-v2",
-                huggingfacehub_api_token=os.getenv("HF_API_KEY")
-            )
+    embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+
 
     vectorstore = Chroma.from_documents(splits, embeddings, persist_directory="./chroma_db")
 
