@@ -1,4 +1,4 @@
-fastembed
+langchain_cohere
 fastapi
 langchain-chroma
 uvicorn
