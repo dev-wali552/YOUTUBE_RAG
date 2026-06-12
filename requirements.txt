@@ -1,5 +1,5 @@
-cohere==5.5.8
-langchain-cohere==0.1.9
+langchain-huggingface
+huggingface-hub
 fastapi
 langchain-chroma
 uvicorn

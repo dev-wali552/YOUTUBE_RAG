@@ -4,9 +4,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from googleapiclient.discovery import build 
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
-from langchain_cohere import CohereEmbeddings
 from langchain_core.documents import Document
 import os
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+
 # 3 types of yt_url
 # https://www.youtube.com/@channelname
 # https://www.youtube.com/channel/UCxxxxxxxxxxxxxx
@@ -81,7 +82,11 @@ def ingest_channel(yt_url: str) -> str:
     splits = text_splitter.split_documents(transcripts)
     splits = [chunk for chunk in splits if chunk.page_content.strip()]
 
-    embeddings = CohereEmbeddings(cohere_api_key=os.getenv("COHERE_API_KEY"), model="embed-english-v3.0")
+    embeddings = HuggingFaceEndpointEmbeddings(
+                model="sentence-transformers/all-MiniLM-L6-v2",
+                huggingfacehub_api_token=os.getenv("HF_API_KEY")
+            )
+
     vectorstore = Chroma.from_documents(splits, embeddings, persist_directory="./chroma_db")
 
     return "Succesfully transcribed ur youtube channel"

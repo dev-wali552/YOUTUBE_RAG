@@ -2,15 +2,15 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-from langchain_cohere import CohereEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_chroma import Chroma
 from dotenv import load_dotenv
 import os
 load_dotenv()
 
-embeddings = CohereEmbeddings(
-    cohere_api_key=os.getenv("COHERE_API_KEY"), 
-    model="embed-english-v3.0"   # ← must match ingest.py exactly
+embeddings = HuggingFaceEndpointEmbeddings(
+    model="sentence-transformers/all-MiniLM-L6-v2",
+    huggingfacehub_api_token=os.getenv("HF_API_KEY")
 )
 
 vectorstore = Chroma(
