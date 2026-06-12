@@ -1,11 +1,12 @@
-from dotenv import load_dotenv
-load_dotenv()
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
 from ingest import ingest_channel
 from graph import graph
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 app = FastAPI()
 
@@ -15,10 +16,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 class ChatRequest(BaseModel):
     message: str
     session_id: str
-class Ingest_Request(BaseModel):
+
+class IngestRequest(BaseModel):
     channel_url: str
 
 @app.get("/")
@@ -26,11 +29,9 @@ def root():
     return {"message": "Youtube RAG is running"}
 
 @app.post("/ingest")
-async def ingest(request: Ingest_Request):
-    message = ingest_channel(request.channel_url)
-    return {"messages": message}
-
-
+async def ingest(request: IngestRequest, background_tasks: BackgroundTasks):
+    background_tasks.add_task(ingest_channel, request.channel_url)
+    return {"message": "Ingestion started — this takes a few minutes for large channels"}
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
@@ -38,5 +39,4 @@ async def chat(request: ChatRequest):
     result = await graph.ainvoke({
         "messages": [HumanMessage(content=request.message)]
     }, config=config)
-    response = result["messages"][-1].content
-    return {"response": response}
+    return {"response": result["messages"][-1].content}
