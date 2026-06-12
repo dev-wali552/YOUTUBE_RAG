@@ -32,18 +32,19 @@ def channel_id(yt_url: str) -> str:
     return response["items"][0]["id"]["channelId"]
 
 
-def get_vid_ids(channel_id: str) -> list:
+def get_vid_ids(channel_id: str, max_videos: int = 15) -> list:
     vid_ids, next_page_token = [], None
-    while True:
+    while len(vid_ids) < max_videos:
         response = youtube.search().list(
             channelId=channel_id, type="video", part="id",
-            maxResults=50, pageToken=next_page_token
+            maxResults=min(50, max_videos - len(vid_ids)),
+            pageToken=next_page_token
         ).execute()
         vid_ids += [item["id"]["videoId"] for item in response["items"]]
         next_page_token = response.get("nextPageToken")
         if not next_page_token:
             break
-    return vid_ids
+    return vid_ids[:max_videos]
 
 
 def get_transcripts(vid_ids: list) -> list[Document]:
