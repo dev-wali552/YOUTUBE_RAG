@@ -63,11 +63,11 @@ def get_transcripts(vid_ids: list) -> list[Document]:
                     page_content=full_text,
                     metadata={"video_id": vids}
                 )
-            
                 transcriptions.append(doc)
-        except Exception:
-            continue  # skip videos with no transcript
-        
+                print(f"✓ Got transcript for {vids}")
+        except Exception as e:
+            print(f"✗ Failed {vids}: {e}")
+            continue
     
     return transcriptions
 
