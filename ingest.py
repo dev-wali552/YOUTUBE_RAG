@@ -1,122 +1,77 @@
 from dotenv import load_dotenv
 load_dotenv()
+
+import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
-from googleapiclient.discovery import build 
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from langchain_core.documents import Document
-import os
 from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
-# 3 types of yt_url
-# https://www.youtube.com/@channelname
-# https://www.youtube.com/channel/UCxxxxxxxxxxxxxx
-# https://www.youtube.com/c/channelname
+from googleapiclient.discovery import build
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
 youtube = build("youtube", "v3", developerKey=os.getenv("YOUTUBE_API_KEY"))
+
+ytt_api = YouTubeTranscriptApi(
+    proxy_config=WebshareProxyConfig(
+        proxy_username=os.getenv("WEBSHARE_USERNAME"),
+        proxy_password=os.getenv("WEBSHARE_PASSWORD"),
+    )
+)
+
+embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+
 
 def channel_id(yt_url: str) -> str:
     if "/channel/" in yt_url:
         return yt_url.split("/channel/")[1]
-    else:
-        handle = yt_url.split("@")[1] if "@" in yt_url else yt_url.split("/c/")[1]
-        response = youtube.search().list(
-            q=handle,
-            type="channel",
-            part="id",
-            maxResults=1
-        ).execute()
-        return response["items"][0]["id"]["channelId"]
+    handle = yt_url.split("@")[1] if "@" in yt_url else yt_url.split("/c/")[1]
+    response = youtube.search().list(q=handle, type="channel", part="id", maxResults=1).execute()
+    return response["items"][0]["id"]["channelId"]
 
 
-    
 def get_vid_ids(channel_id: str) -> list:
-    vid_ids = []
-    next_page_token = None
-
+    vid_ids, next_page_token = [], None
     while True:
         response = youtube.search().list(
-            channelId=channel_id,
-            type="video",
-            part="id",
-            maxResults=50,
-            pageToken=next_page_token
+            channelId=channel_id, type="video", part="id",
+            maxResults=50, pageToken=next_page_token
         ).execute()
-        for item in response["items"]:
-            vid_ids.append(item["id"]["videoId"])
+        vid_ids += [item["id"]["videoId"] for item in response["items"]]
         next_page_token = response.get("nextPageToken")
         if not next_page_token:
             break
-
     return vid_ids
 
-  
+
 def get_transcripts(vid_ids: list) -> list[Document]:
-    transcriptions = []
-    ytt_api = YouTubeTranscriptApi(cookies="/etc/secrets/cookies.txt")  # ← here
-    
-    for vids in vid_ids:
+    docs = []
+    for vid in vid_ids:
         try:
-            transcript = ytt_api.fetch(vids)
+            transcript = ytt_api.fetch(vid)
             full_text = " ".join(entry.text for entry in transcript)
             if full_text.strip():
-                doc = Document(
-                    page_content=full_text,
-                    metadata={"video_id": vids}
-                )
-                transcriptions.append(doc)
-                print(f"✓ Got transcript for {vids}")
+                docs.append(Document(page_content=full_text, metadata={"video_id": vid}))
+                print(f"✓ {vid}")
         except Exception as e:
-            print(f"✗ Failed {vids}: {e}")
-            continue
-    
-    return transcriptions
+            print(f"✗ {vid}: {e}")
+    return docs
+
 
 def ingest_channel(yt_url: str) -> str:
+    channel  = channel_id(yt_url)
+    vid_ids  = get_vid_ids(channel)
+    docs     = get_transcripts(vid_ids)
 
-    channelID = channel_id(yt_url)
-    print(f"Channel ID: {channelID}")
-    vidID = get_vid_ids(channelID)
-    print(f"Video IDs found: {len(vidID)}")
-    transcripts = get_transcripts(vidID)
-    print(f"Transcripts fetched: {len(transcripts)}")
+    print(f"Channel: {channel} | Videos: {len(vid_ids)} | Transcripts: {len(docs)}")
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000 , chunk_overlap = 200)
-    splits = text_splitter.split_documents(transcripts)
-    splits = [chunk for chunk in splits if chunk.page_content.strip()]
-    print(f"Chunks after splitting: {len(splits)}")
+    splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(docs)
+    splits = [c for c in splits if c.page_content.strip()]
+
+    print(f"Chunks: {len(splits)}")
 
     if not splits:
         return "No transcripts found for this channel"
 
-    embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-
-
-    vectorstore = Chroma.from_documents(splits, embeddings, persist_directory="./chroma_db")
-
-    return "Succesfully transcribed ur youtube channel"
-
-    
-
-
-
-
-        
-        
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Chroma.from_documents(splits, embeddings, persist_directory="./chroma_db")
+    return "Successfully ingested your YouTube channel"
