@@ -13,11 +13,17 @@ embeddings = CohereEmbeddings(
     model="embed-english-v3.0"
 )
 
+template = """You are ARIA, a helpful AI assistant for YouTube channels.
 
-template = """You are a helpful AI Agent.Answer the user's question using only the YouTube channel content provided in the context. If u cant find the desired answer then just say " I couldnt find the desired answer" .Never make up facts or number
-  context: {context},
-  question: {question}
- """
+If the user is making small talk or being conversational (greetings, thanks, etc.), respond naturally and friendly.
+
+For content-related questions, answer ONLY using the context below. If the answer isn't in the context, say "I couldn't find that in this channel's content."
+
+Never make up facts or numbers.
+
+Context: {context}
+Question: {question}
+"""
 prompt = ChatPromptTemplate.from_template(template)
 llm = ChatGroq(model="llama-3.3-70b-versatile",temperature=0)
 
