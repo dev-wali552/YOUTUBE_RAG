@@ -82,7 +82,7 @@ User question
 |-------|-----------|
 | **Agent Framework** | LangGraph |
 | **LLM** | Groq — `llama-3.3-70b-versatile` |
-| **Embeddings** | FastEmbed — `BAAI/bge-small-en-v1.5` |
+| **Embeddings** | Cohere — `embed-english-v3.0` |
 | **Vector Store** | ChromaDB (in-memory on Render) |
 | **Transcript Fetching** | `youtube-transcript-api` |
 | **Proxy Layer** | Webshare residential proxies (bypasses Render IP bans) |
@@ -149,6 +149,7 @@ Create a `.env` file:
 ```env
 GROQ_API_KEY=your_groq_key
 YOUTUBE_API_KEY=your_yt_key
+COHERE_API_KEY=your_cohere_key
 WEBSHARE_USERNAME=your_webshare_username
 WEBSHARE_PASSWORD=your_webshare_password
 ```
@@ -170,7 +171,7 @@ Ingests a YouTube channel — fetches up to 15 video transcripts, chunks them, e
 
 ```json
 {
-  "url": "https://www.youtube.com/@channelname"
+    "channel_url": "https://www.youtube.com/@channelname" 
 }
 ```
 
