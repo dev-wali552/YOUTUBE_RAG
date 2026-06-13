@@ -107,10 +107,7 @@ ytt_api = YouTubeTranscriptApi(
 )
 ```
 
-### 2. FastEmbed over Cohere — Staying Under Render's 512MB RAM Limit
-Local HuggingFace models blew Render's free tier RAM cap. Cohere embeddings API threw `IndexError` under load. FastEmbed (`BAAI/bge-small-en-v1.5`) runs inference locally but is lightweight enough to stay comfortably under 512MB.
-
-### 3. LangGraph for Stateful Ingestion + Retrieval
+### 2. LangGraph for Stateful Ingestion + Retrieval
 Both pipelines (ingest and chat) are modeled as LangGraph graphs with typed state. This gives clean node separation, easy debugging, and the ability to extend later (re-ranking node, source citation node, multi-channel support).
 
 ---
