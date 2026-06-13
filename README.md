@@ -24,6 +24,8 @@ Point it at a tech channel and ask *"What's their take on AI agents?"* — ARIA 
 
 Paste any YouTube channel URL → wait for ingestion → start asking questions.
 
+> ⚠️ **Note on reliability:** ARIA works best with smaller channels (≤10 videos). YouTube aggressively blocks transcript requests from cloud provider IPs. The current deployment uses Webshare's free proxy tier (datacenter IPs), which YouTube occasionally identifies as bot traffic. Upgrading to residential proxies ($3.50/month on Webshare) would make this fully reliable at scale. See [Known Limitations](#known-limitations).
+
 ---
 
 ## Architecture
@@ -215,11 +217,14 @@ WEBSHARE_PASSWORD
 
 ---
 
-## Limitations
+## Known Limitations
 
-- **15 videos per channel** — YouTube Data API quota is the bottleneck. Expandable with a paid quota increase.
-- **ChromaDB resets on cold start** — Render's free tier has no persistent disk. Re-ingest after backend sleeps. Fixable with Render paid tier or external vector DB (Pinecone, Qdrant Cloud).
-- **English transcripts only** — `youtube-transcript-api` fetches auto-generated captions; accuracy varies by creator.
+| Limitation | Cause | Fix |
+|-----------|-------|-----|
+| Inconsistent transcript fetching on large channels | Webshare free tier = datacenter IPs; YouTube bot detection | Upgrade to Webshare residential proxies (~$3.50/mo) |
+| ~10 video cap on reliable ingestion | YouTube API quota + IP filtering | Paid YouTube quota + residential proxies |
+| ChromaDB resets on cold start | Render free tier has no persistent disk | Render paid tier or external vector DB (Qdrant Cloud, Pinecone) |
+| English transcripts only | `youtube-transcript-api` uses auto-generated captions | Language filter + multilingual embedding model |
 
 ---
 
@@ -237,7 +242,7 @@ WEBSHARE_PASSWORD
 
 **Wali Khan** — First-year CSAM @ IIIT Delhi. Building agentic AI systems.
 
-[![GitHub](https://img.shields.io/badge/GitHub-dev--wali-181717?style=flat-square&logo=github)](https://github.com/dev-wali)
+[![GitHub](https://img.shields.io/badge/GitHub-dev--wali-181717?style=flat-square&logo=github)](https://github.com/dev-wali552)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-wali--khan-0A66C2?style=flat-square&logo=linkedin)](https://linkedin.com/in/wali-khan-42b656409)
 
 ---
