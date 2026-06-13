@@ -14,7 +14,7 @@ embeddings = CohereEmbeddings(
 )
 
 
-template = """You are a helpful AI Agent.Answer the user from only the youtube link the user has attached. If u cant find the desired answer then just say " I couldnt find the desired answer" .Never make up facts or number
+template = """You are a helpful AI Agent.Answer the user's question using only the YouTube channel content provided in the context. If u cant find the desired answer then just say " I couldnt find the desired answer" .Never make up facts or number
   context: {context},
   question: {question}
  """

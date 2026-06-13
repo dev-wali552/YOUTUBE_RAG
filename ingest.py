@@ -9,6 +9,8 @@ from langchain_cohere import CohereEmbeddings
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.proxies import WebshareProxyConfig
+import shutil
+import time
 
 youtube = build("youtube", "v3", developerKey=os.getenv("YOUTUBE_API_KEY"))
 
@@ -26,8 +28,8 @@ embeddings = CohereEmbeddings(
 
 def channel_id(yt_url: str) -> str:
     if "/channel/" in yt_url:
-        return yt_url.split("/channel/")[1]
-    handle = yt_url.split("@")[1] if "@" in yt_url else yt_url.split("/c/")[1]
+        return yt_url.split("/channel/")[1].split("/")[0]
+    handle = yt_url.split("@")[1].split("/")[0] if "@" in yt_url else yt_url.split("/c/")[1].split("/")[0]
     response = youtube.search().list(q=handle, type="channel", part="id", maxResults=1).execute()
     return response["items"][0]["id"]["channelId"]
 
@@ -58,10 +60,15 @@ def get_transcripts(vid_ids: list) -> list[Document]:
                 print(f"✓ {vid}")
         except Exception as e:
             print(f"✗ {vid}: {e}")
+        time.sleep(1)
     return docs
 
 
 def ingest_channel(yt_url: str) -> str:
+
+    if os.path.exists("./chroma_db"):
+        shutil.rmtree("./chroma_db")
+
     channel  = channel_id(yt_url)
     vid_ids  = get_vid_ids(channel)
     docs     = get_transcripts(vid_ids)
