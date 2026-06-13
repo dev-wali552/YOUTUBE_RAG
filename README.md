@@ -20,8 +20,6 @@ Point it at a tech channel and ask *"What's their take on AI agents?"* — ARIA 
 
 ## Demo
 
-![ARIA Demo](https://strong-meerkat-a392da.netlify.app)
-
 **Try it live → [strong-meerkat-a392da.netlify.app](https://strong-meerkat-a392da.netlify.app)**
 
 Paste any YouTube channel URL → wait for ingestion → start asking questions.
