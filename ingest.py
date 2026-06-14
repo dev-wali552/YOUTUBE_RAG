@@ -22,10 +22,14 @@ CF_WORKER_SECRET = os.getenv("CF_WORKER_SECRET") # must match worker.js SECRET
 
 def channel_id(yt_url: str) -> str:
     if "/channel/" in yt_url:
-        return yt_url.split("/channel/")[1]
-    handle = yt_url.split("@")[1] if "@" in yt_url else yt_url.split("/c/")[1]
-    response = youtube.search().list(q=handle, type="channel", part="id", maxResults=1).execute()
-    return response["items"][0]["id"]["channelId"]
+        return yt_url.split("/channel/")[1].strip()
+    if "@" in yt_url:
+        handle = yt_url.split("@")[1].strip()
+        response = youtube.channels().list(part="id", forHandle=handle).execute()
+        return response["items"][0]["id"]
+    handle = yt_url.split("/c/")[1].strip()
+    response = youtube.channels().list(part="id", forUsername=handle).execute()
+    return response["items"][0]["id"]
 
 
 def get_vid_ids(channel_id: str, max_videos: int = 15) -> list:
