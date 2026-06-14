@@ -2,23 +2,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
-import httpx
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_cohere import CohereEmbeddings
 from googleapiclient.discovery import build
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
 youtube = build("youtube", "v3", developerKey=os.getenv("YOUTUBE_API_KEY"))
+
+ytt_api = YouTubeTranscriptApi(
+    proxy_config=WebshareProxyConfig(
+        proxy_username=os.getenv("WEBSHARE_USERNAME"),
+        proxy_password=os.getenv("WEBSHARE_PASSWORD"),
+    )
+)
 
 embeddings = CohereEmbeddings(
     cohere_api_key=os.getenv("COHERE_API_KEY"),
     model="embed-english-v3.0"
 )
-
-CF_WORKER_URL = os.getenv("CF_WORKER_URL")       # e.g. https://your-worker.workers.dev
-CF_WORKER_SECRET = os.getenv("CF_WORKER_SECRET") # must match worker.js SECRET
-
 
 def channel_id(yt_url: str) -> str:
     if "/channel/" in yt_url:
@@ -30,7 +34,6 @@ def channel_id(yt_url: str) -> str:
     handle = yt_url.split("/c/")[1].strip()
     response = youtube.channels().list(part="id", forUsername=handle).execute()
     return response["items"][0]["id"]
-
 
 def get_vid_ids(channel_id: str, max_videos: int = 15) -> list:
     vid_ids, next_page_token = [], None
@@ -46,32 +49,18 @@ def get_vid_ids(channel_id: str, max_videos: int = 15) -> list:
             break
     return vid_ids[:max_videos]
 
-
 def get_transcripts(vid_ids: list) -> list[Document]:
     docs = []
     for vid in vid_ids:
         try:
-            res = httpx.get(
-                f"{CF_WORKER_URL}/transcript",
-                params={"video_id": vid},
-                headers={"X-Secret-Token": CF_WORKER_SECRET},
-                timeout=15.0
-            )
-            data = res.json()
-
-            if "transcript" in data and data["transcript"].strip():
-                docs.append(Document(
-                    page_content=data["transcript"],
-                    metadata={"video_id": vid}
-                ))
+            transcript = ytt_api.fetch(vid)
+            full_text = " ".join(entry.text for entry in transcript)
+            if full_text.strip():
+                docs.append(Document(page_content=full_text, metadata={"video_id": vid}))
                 print(f"✓ {vid}")
-            else:
-                print(f"✗ {vid}: {data.get('error', 'empty transcript')}")
-
         except Exception as e:
             print(f"✗ {vid}: {e}")
     return docs
-
 
 def ingest_channel(yt_url: str) -> str:
     channel  = channel_id(yt_url)
