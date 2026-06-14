@@ -38,8 +38,7 @@ def get_vid_ids(channel_id: str, max_videos: int = 15) -> list:
         response = youtube.search().list(
             channelId=channel_id, type="video", part="id",
             maxResults=min(50, max_videos - len(vid_ids)),
-            pageToken=next_page_token,
-            videoDuration="medium"  # excludes Shorts (under 4 min)
+            pageToken=next_page_token
         ).execute()
         vid_ids += [item["id"]["videoId"] for item in response["items"]]
         next_page_token = response.get("nextPageToken")
