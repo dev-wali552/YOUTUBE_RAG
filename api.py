@@ -24,6 +24,10 @@ class ChatRequest(BaseModel):
 class IngestRequest(BaseModel):
     channel_url: str
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 @app.get("/")
 def root():
     return {"message": "Youtube RAG is running"}
