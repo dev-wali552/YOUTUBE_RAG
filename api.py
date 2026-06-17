@@ -24,7 +24,7 @@ class ChatRequest(BaseModel):
 class IngestRequest(BaseModel):
     channel_url: str
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
 
